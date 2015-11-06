@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+
+{#
+    NOTE: this page is a jinja2 template rendered by a flask application. Throughout the page you
+    will see references to a web_app_conf datastructure. This datastructure is defined in the
+    config.py file. This means for example that if you'd like to change the application title
+    that is rendered by this page you should update that value in config.py.
+#}
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>{{ web_app_conf.title }}</title>
+
+        <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-1.11.1.min.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/d3.min.js') }}"></script>
+        <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap-3.3.5-dist/css/bootstrap.min.css') }}">
+        <script src="{{ url_for('static', filename='bootstrap-3.3.5-dist/js/bootstrap.min.js') }}"></script>
+        <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap-table-1.9.0/dist/bootstrap-table.min.css') }}">
+        <script src="{{ url_for('static', filename='bootstrap-table-1.9.0/dist/bootstrap-table.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/factexpviewer.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/Blob.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/FileSaver.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/saveSvgAsPng.js') }}"></script>
+        {# <script src="{{ url_for('static', filename='js/treetable.js') }}"></script> #}
+        <script src="{{ url_for('static', filename='js/factexprapp.js') }}"></script>
+
+        <link rel="stylesheet" href="{{ url_for('static', filename='svgstyles.css') }}">
+        <style>
+            #cursor-status {
+                display: none;
+                position: absolute;
+                background-color: rgba(246, 246, 246, 0.70);
+                pointer-events: none;
+                white-space: nowrap;
+            }
+
+            #cursor-status td {
+                border: 2px solid lightgrey;
+            }
+
+            /* CSS for drawing a border between columns based on: http://stackoverflow.com/a/29341777/160015 */
+            .border-between > [class*='col-']:before {
+                background: #e3e3e3;
+                bottom: 0;
+                content: " ";
+                left: 0;
+                position: absolute;
+                width: 1px;
+                top: 0;
+            }
+            .border-between > [class*='col-']:first-child:before {
+                display: none;
+            }
+
+            .border-bottom {
+               border-bottom-width: 2px;
+               border-bottom-color: #e3e3e3;
+               border-bottom-style: solid;
+            }
+
+            .plot-panel {
+                text-align: center;
+            }
+        </style>
+
+        <script type="text/javascript">
+            $(document).ready(function() {
+                // tells bootstrap to enable tooltips for any element we class "tooltip-support"
+                $('.tooltip-support').tooltip();
+
+                var appConfig = {{ web_app_conf|tojson }};
+                initFactExprApp(appConfig);
+            });
+        </script>
+    </head>
+
+    <body>
+        <!--div class="container-fluid"-->
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <table id="variant-table"></table>
+                </div>
+            </div>
+
+            <!--
+            ==================
+            INTRODUCTION PANEL
+            ==================
+            -->
+
+            <h1 class="page-header">{{ web_app_conf.title }}</h1>
+
+            <!--
+            ============
+            SELECT GENES
+            ============
+            -->
+
+            <div id="config-factors-panel" class="nospace">
+                <h2 class="page-header">Select Genes to Compare:</h2>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <!--
+                        <div class="dropdown" id="search1-dropdown-only" style="display: none;">
+                        </div>
+                        -->
+
+                        <div class="input-group" id="search1-dropdown-with-text">
+                            <div id="search1-button-group" class="input-group-btn">
+                                <button type="button" class="btn btn-default dropdown-toggle upper-left-widget" data-toggle="dropdown" aria-expanded="false">
+                                    <span id="search1-label">Gene1 Search</span> <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li><a href="#" id="gene1-search-select">Gene1 Search</a></li>
+                                    <!--<li><a href="#" id="phenotype1-search-select">Phenotype1 Search</a></li>-->
+                                    <li><a href="#" id="correlation1-search-select">Correlation Search</a></li>
+                                </ul>
+                            </div>
+
+                            <input id="gene1-search-text" type="text" placeholder="Enter a search term (Eg: kit)" class="form-control upper-right-widget">
+                        </div>
+
+                        <table id="gene1-results-table" class="bottom-widget"></table>
+                    </div>
+
+                    <div class="col-md-6">
+                        <!--
+                        <div class="dropdown" id="search2-dropdown-only" style="display: none;">
+                        </div>
+                        -->
+
+                        <div class="input-group" id="search2-dropdown-with-text">
+                            <div id="search2-button-group" class="input-group-btn">
+                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                                    <span id="search2-label">Gene2 Search</span> <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li><a href="#" id="gene2-search-select">Gene2 Search</a></li>
+                                    <!--<li><a href="#" id="phenotype2-search-select">Phenotype2 Search</a></li>-->
+                                    <li><a href="#" id="correlation2-search-select">Correlation Search</a></li>
+                                </ul>
+                            </div>
+
+                            <input id="gene2-search-text" type="text" placeholder="Enter a 2nd search term (Eg: brca)" class="form-control">
+                        </div>
+                        <table id="gene2-results-table"></table>
+                    </div>
+                </div>
+            </div>
+
+            <!--
+            ==========
+            PLOT PANEL
+            ==========
+            -->
+
+            <div id="plot-panel" class="nospace">
+                <h2 class="page-header">Expression Plots:</h2>
+
+                <form class="form-inline">
+                    <div class="form-group">
+                        <label for="plot-factors-select">Plot Factors:</label>
+                        <select name="plot-factors-select" id="plot-factors-select" class="form-control"></select>
+                    </div>
+
+                    <div class="radio"{% if not  web_app_conf.include_log_scale %} style="display: none;"{% endif %}>
+                        <label>Transform:</label>
+                        <label>
+                            <input type="radio" name="transform-radio" id="raw-transform" checked> Raw Data
+                        </label>
+                        <label>
+                            <input type="radio" name="transform-radio" id="log2-transform"> Log2(x + 1) Transform
+                        </label>
+                    </div>
+                </form>
+
+                <br/>
+
+                <div class="row border-between">
+                    {% if web_app_conf.plot_arrangement == 'single-row' %}
+                    <div class="col-md-4 plot-panel">
+                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="gene1-chart" width="100%" viewBox="0 0 400 400"></svg>
+                        <button
+                                id="gene1-download-button"
+                                type="button"
+                                class="btn btn-default"
+                                aria-label="Left Align"
+                                style="display: none;">
+                            <span class="glyphicon glyphicon-download" aria-hidden="true"></span>
+                            Download Data
+                        </button>
+                        <button
+                                id="gene1-save-image"
+                                type="button"
+                                class="btn btn-default"
+                                aria-label="Left Align"
+                                style="display: none;">
+                            <span class="glyphicon glyphicon-picture" aria-hidden="true"></span>
+                            Save As PNG
+                        </button>
+                    </div>
+                    <div class="col-md-4 plot-panel">
+                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="scatter-chart" width="100%" viewBox="0 0 400 400"></svg>
+                        <button
+                                id="scatter-download-button"
+                                type="button"
+                                class="btn btn-default"
+                                aria-label="Left Align"
+                                style="display: none;">
+                            <span class="glyphicon glyphicon-download" aria-hidden="true"></span>
+                            Download Data
+                        </button>
+                        <button
+                                id="scatter-save-image"
+                                type="button"
+                                class="btn btn-default"
+                                aria-label="Left Align"
+                                style="display: none;">
+                            <span class="glyphicon glyphicon-picture" aria-hidden="true"></span>
+                            Save As PNG
+                        </button>
+                    </div>
+                    <div class="col-md-4 plot-panel">
+                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="gene2-chart" width="100%" viewBox="0 0 400 400"></svg>
+                        <button
+                                id="gene2-download-button"
+                                type="button"
+                                class="btn btn-default"
+                                aria-label="Left Align"
+                                style="display: none;">
+                            <span class="glyphicon glyphicon-download" aria-hidden="true"></span>
+                            Download Data
+                        </button>
+                        <button
+                                id="gene2-save-image"
+                                type="button"
+                                class="btn btn-default"
+                                aria-label="Left Align"
+                                style="display: none;">
+                            <span class="glyphicon glyphicon-picture" aria-hidden="true"></span>
+                            Save As PNG
+                        </button>
+                    </div>
+                    {% elif web_app_conf.plot_arrangement == 'stack-factor-large-scatter' %}
+                    <div class="col-md-4">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <!-- the purpose of this div is just to add a border to the bottom -->
+                                <div class="border-bottom plot-panel">
+                                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="gene1-chart" width="100%" viewBox="0 0 400 400"></svg>
+                                    <button
+                                            id="gene1-download-button"
+                                            type="button"
+                                            class="btn btn-default"
+                                            aria-label="Left Align"
+                                            style="display: none;">
+                                        <span class="glyphicon glyphicon-download" aria-hidden="true"></span>
+                                        Download Data
+                                    </button>
+                                    <button
+                                            id="gene1-save-image"
+                                            type="button"
+                                            class="btn btn-default"
+                                            aria-label="Left Align"
+                                            style="display: none;">
+                                        <span class="glyphicon glyphicon-picture" aria-hidden="true"></span>
+                                        Save As PNG
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 plot-panel">
+                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="gene2-chart" width="100%" viewBox="0 0 400 400"></svg>
+                                <button
+                                        id="gene2-download-button"
+                                        type="button"
+                                        class="btn btn-default"
+                                        aria-label="Left Align"
+                                        style="display: none;">
+                                    <span class="glyphicon glyphicon-download" aria-hidden="true"></span>
+                                    Download Data
+                                </button>
+                                <button
+                                        id="gene2-save-image"
+                                        type="button"
+                                        class="btn btn-default"
+                                        aria-label="Left Align"
+                                        style="display: none;">
+                                    <span class="glyphicon glyphicon-picture" aria-hidden="true"></span>
+                                    Save As PNG
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8 plot-panel">
+                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="scatter-chart" width="100%" viewBox="0 0 800 800"></svg>
+                        <button
+                                id="scatter-download-button"
+                                type="button"
+                                class="btn btn-default"
+                                aria-label="Left Align"
+                                style="display: none;">
+                            <span class="glyphicon glyphicon-download" aria-hidden="true"></span>
+                            Download Data
+                        </button>
+                        <button
+                                id="scatter-save-image"
+                                type="button"
+                                class="btn btn-default"
+                                aria-label="Left Align"
+                                style="display: none;">
+                            <span class="glyphicon glyphicon-picture" aria-hidden="true"></span>
+                            Save As PNG
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- TODO make cursor status panel 100% JS. DON'T think it really belongs in the doc -->
+        <div id="cursor-status"><table id="cursor-status-table"></table></div>
+    </body>
+</html>

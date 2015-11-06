@@ -1,0 +1,93 @@
+/* Plot SVG styles */
+
+.plot-content text {
+    font: 10px sans-serif;
+}
+
+.axis line, .axis path {
+    /*shape-rendering: crispEdges;*/
+    stroke: black;
+    fill: none;
+}
+
+.data-point {
+    /*fill: rgba(70, 130, 180, 0.25);*/
+    /*stroke: rgba(70, 130, 180, 1);*/
+    stroke-width: 0.25;
+}
+
+.separator-line {
+    stroke: rgba(0, 0, 0, 0);
+}
+
+.top-level-separator {
+    stroke: lightgray;
+}
+
+.plot-title {
+    font-size: x-large !important;
+}
+
+.axis-label {
+    font-size: large !important;
+}
+
+.whiskers {
+    stroke: black;
+    stroke-width: 2;
+    pointer-events: none;
+}
+
+.whisker-connector {
+    stroke: #1f1f1f;
+    stroke-width: 1;
+    stroke-dasharray: 5,5;
+}
+
+.strain-A\/J {
+    fill: rgba(218, 165, 32, 0.3) !important;
+    stroke: rgba(218, 165, 32, 1) !important;
+    stroke-width: 0.5;
+}
+
+.strain-B6 {
+    fill: rgba(68, 68, 68, 0.3) !important;
+    stroke: rgba(68, 68, 68, 1) !important;
+    stroke-width: 0.5;
+}
+
+.strain-129 {
+    fill: rgba(255, 136, 136, 0.3) !important;
+    stroke: rgba(255, 136, 136, 1) !important;
+    stroke-width: 0.5;
+}
+
+.strain-NOD {
+    fill: rgba(17, 17, 255, 0.3) !important;
+    stroke: rgba(17, 17, 255, 1) !important;
+    stroke-width: 0.5;
+}
+
+.strain-NZO {
+    fill: rgba(0, 170, 255, 0.3) !important;
+    stroke: rgba(0, 170, 255, 1) !important;
+    stroke-width: 0.5;
+}
+
+.strain-CAST {
+    fill: rgba(0, 170, 0, 0.3) !important;
+    stroke: rgba(0, 170, 0, 1) !important;
+    stroke-width: 0.5;
+}
+
+.strain-PWK {
+    fill: rgba(255, 0, 0, 0.3) !important;
+    stroke: rgba(255, 0, 0, 1) !important;
+    stroke-width: 0.5;
+}
+
+.strain-WSB {
+    fill: rgba(153, 0, 238, 0.3) !important;
+    stroke: rgba(153, 0, 238, 1) !important;
+    stroke-width: 0.5;
+}
