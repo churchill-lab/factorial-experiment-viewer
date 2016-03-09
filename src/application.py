@@ -33,6 +33,10 @@ class Config:
 
 CONF = Config()
 
+app.config.from_object('config')
+
+mongodb_utils.connect(app.config['MONGO_SERVER'], app.config['MONGO_PORT'])
+mongodb_utils.set_default_database(app.config['MONGO_DATABASE'])
 
 def _decode_uri_slashes(uriCompStr):
     """
@@ -362,10 +366,4 @@ def index_html():
 
 
 if __name__ == "__main__":
-    app.config.from_object('config')
-
-    mongodb_utils.connect(app.config['MONGO_SERVER'], app.config['MONGO_PORT'])
-    mongodb_utils.set_default_database(app.config['MONGO_DATABASE'])
-
     app.run(host='0.0.0.0', port=app.config['PORT'], threaded=True)
-
